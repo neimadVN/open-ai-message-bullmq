@@ -5,8 +5,8 @@
 - [ ] Add support for creating threads automatically if they don't exist
 - [ ] Implement a method to create and manage OpenAI Assistants
 - [ ] Add support for canceling runs
-- [ ] Implement handling for `requires_action` run status
-- [ ] Support for tool calls and function calling
+- [x] Implement handling for `requires_action` run status
+- [x] Support for tool calls and function calling
 - [ ] Add ability to customize retry logic for failed jobs
 - [ ] Implement graceful shutdown with drain mode
 
@@ -38,7 +38,10 @@
 ## Integration
 
 - [ ] Add webhooks for job events
-- [ ] Create adapters for common frameworks (Express, NestJS, etc.)
+- [x] Create adapters for NestJS
+- [ ] Create adapters for Express
+- [ ] Create adapters for Fastify
+- [ ] Create adapters for Next.js
 - [ ] Implement streaming support for real-time updates
 - [ ] Add support for other message brokers (RabbitMQ, Kafka)
 - [ ] Create plug-and-play integrations with popular message platforms

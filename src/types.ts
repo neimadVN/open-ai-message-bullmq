@@ -73,6 +73,65 @@ export interface AssistantMessageQueueOptions {
    * Default: true
    */
   removeOnComplete?: boolean;
+
+  /**
+   * Handler for requires_action status in OpenAI runs
+   * This is called when a run requires function calling
+   * @param threadId Thread ID
+   * @param runId Run ID
+   * @param toolCalls Tool calls from OpenAI
+   * @returns Tool outputs to submit back to OpenAI
+   */
+  handleRequiresAction?: ((
+    threadId: string, 
+    runId: string, 
+    toolCalls: ToolCall[]
+  ) => Promise<ToolOutput[]>) | null;
+}
+
+/**
+ * Tool call from OpenAI
+ */
+export interface ToolCall {
+  /**
+   * ID of the tool call
+   */
+  id: string;
+
+  /**
+   * Type of the tool call
+   */
+  type: 'function';
+
+  /**
+   * Function call details
+   */
+  function: {
+    /**
+     * Name of the function
+     */
+    name: string;
+
+    /**
+     * Arguments for the function as a JSON string
+     */
+    arguments: string;
+  };
+}
+
+/**
+ * Tool output to submit to OpenAI
+ */
+export interface ToolOutput {
+  /**
+   * ID of the tool call
+   */
+  tool_call_id: string;
+
+  /**
+   * Output of the tool as a string
+   */
+  output: string;
 }
 
 /**

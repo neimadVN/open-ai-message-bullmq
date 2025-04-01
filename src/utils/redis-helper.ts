@@ -1,4 +1,9 @@
-import { createClient, RedisClientType } from 'redis';
+import { createClient, RedisClientType as OriginalRedisClientType } from 'redis';
+
+/**
+ * Type alias for the Redis client
+ */
+type RedisClientType = OriginalRedisClientType<any, any>;
 
 /**
  * Creates and connects to a Redis client
@@ -13,7 +18,7 @@ export async function createAndConnectRedisClient(redisUrl: string): Promise<Red
     await client.connect();
   }
   
-  return client;
+  return client as RedisClientType;
 }
 
 /**
@@ -31,10 +36,11 @@ export async function acquireLock(
   lockValue: string,
   expiryInSeconds: number
 ): Promise<boolean> {
-  return client.set(lockKey, lockValue, {
+  const result = await client.set(lockKey, lockValue, {
     NX: true,
     EX: expiryInSeconds
-  }) as Promise<boolean>;
+  });
+  return result === 'OK';
 }
 
 /**

@@ -27,6 +27,8 @@ This repository provides an optimized solution using BullMQ and Redis to address
 - **Race Condition Prevention** - Carefully manages concurrent jobs to prevent data loss.
 - **Automatic New Message Detection** - Detects and processes new messages that arrived during processing.
 - **Optimized for Scalability** - Works well in environments with multiple workers.
+- **Function Calling Support** - Handles OpenAI's function calling capability with a simple interface.
+- **Framework Integration** - Includes adapters for NestJS to easily integrate with your existing applications.
 
 ### How It Works
 
@@ -64,6 +66,85 @@ await assistantQueue.addMessageToThread('thread-123', 'Hello, assistant!');
 // Start the worker to process messages
 assistantQueue.startWorker();
 ```
+
+## Function Calling Support
+
+You can handle function calls from OpenAI by providing a `handleRequiresAction` callback:
+
+```typescript
+const assistantQueue = new AssistantMessageQueue({
+  // ...other options
+  handleRequiresAction: async (threadId, runId, toolCalls) => {
+    // Process each function call
+    return Promise.all(toolCalls.map(async (toolCall) => {
+      const args = JSON.parse(toolCall.function.arguments);
+      
+      // Handle the function
+      let result;
+      switch (toolCall.function.name) {
+        case 'get_weather':
+          result = await getWeatherData(args.location);
+          break;
+        default:
+          result = { error: 'Unknown function' };
+      }
+      
+      // Return the result
+      return {
+        tool_call_id: toolCall.id,
+        output: JSON.stringify(result)
+      };
+    }));
+  }
+});
+```
+
+## NestJS Integration
+
+This library includes a NestJS adapter that makes it easy to use in your NestJS applications:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AssistantMessageQueueService } from 'openai-assistant-message-bullmq';
+
+@Module({
+  imports: [ConfigModule.forRoot()],
+  providers: [
+    {
+      provide: AssistantMessageQueueService,
+      useFactory: (configService: ConfigService) => {
+        return new AssistantMessageQueueService({
+          redisUrl: configService.get<string>('REDIS_URL'),
+          openAIApiKey: configService.get<string>('OPENAI_API_KEY'),
+          assistantId: configService.get<string>('OPENAI_ASSISTANT_ID'),
+        });
+      },
+      inject: [ConfigService]
+    }
+  ],
+  exports: [AssistantMessageQueueService]
+})
+export class AssistantMessageQueueModule {}
+```
+
+Then you can inject and use it in your services and controllers:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { AssistantMessageQueueService } from 'openai-assistant-message-bullmq';
+
+@Injectable()
+export class ChatService {
+  constructor(private readonly assistantService: AssistantMessageQueueService) {}
+  
+  async sendMessage(threadId: string, message: string) {
+    return this.assistantService.addMessageToThread(threadId, message);
+  }
+}
+```
+
+See the [NestJS example](./example/nestjs-example-module.ts) for a complete example.
 
 ## Contributing
 
